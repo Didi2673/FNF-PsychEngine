@@ -1889,24 +1889,50 @@ class PlayState extends MusicBeatState
 	}
 
 	var iconsAnimations:Bool = true;
-	function set_health(value:Float):Float // You can alter how icon animations work here
-	{
-		value = FlxMath.roundDecimal(value, 5); //Fix Float imprecision
-		if(!iconsAnimations || healthBar == null || !healthBar.enabled || healthBar.valueFunction == null)
+	function set_health(value:Float):Float
 		{
+			value = FlxMath.roundDecimal(value, 5);
+			if(!iconsAnimations || healthBar == null || !healthBar.enabled || healthBar.valueFunction == null)
+			{
+				health = value;
+				return health;
+			}
+	
+			// update health bar
 			health = value;
+			var newPercent:Null<Float> = FlxMath.remapToRange(FlxMath.bound(healthBar.valueFunction(), healthBar.bounds.min, healthBar.bounds.max), healthBar.bounds.min, healthBar.bounds.max, 0, 100);
+			healthBar.percent = (newPercent != null ? newPercent : 0);
+	
+			// --- JOUEUR (P1) ---
+			if (healthBar.percent < 20)
+			{
+				iconP1.animation.curAnim.curFrame = 1; // Perdant (Toujours dispo)
+			}
+			else if (healthBar.percent > 80 && iconP1.animation.curAnim.numFrames >= 3)
+			{
+				iconP1.animation.curAnim.curFrame = 2; // Gagnant (Seulement si 3 frames)
+			}
+			else
+			{
+				iconP1.animation.curAnim.curFrame = 0; // Normal
+			}
+	
+			// --- ADVERSAIRE (P2) ---
+			if (healthBar.percent > 80)
+			{
+				iconP2.animation.curAnim.curFrame = 1; // Perdant (Toujours dispo)
+			}
+			else if (healthBar.percent < 20 && iconP2.animation.curAnim.numFrames >= 3)
+			{
+				iconP2.animation.curAnim.curFrame = 2; // Gagnant (Seulement si 3 frames)
+			}
+			else
+			{
+				iconP2.animation.curAnim.curFrame = 0; // Normal
+			}
+	
 			return health;
 		}
-
-		// update health bar
-		health = value;
-		var newPercent:Null<Float> = FlxMath.remapToRange(FlxMath.bound(healthBar.valueFunction(), healthBar.bounds.min, healthBar.bounds.max), healthBar.bounds.min, healthBar.bounds.max, 0, 100);
-		healthBar.percent = (newPercent != null ? newPercent : 0);
-
-		iconP1.animation.curAnim.curFrame = (healthBar.percent < 20) ? 1 : 0; //If health is under 20%, change player icon to frame 1 (losing icon), otherwise, frame 0 (normal)
-		iconP2.animation.curAnim.curFrame = (healthBar.percent > 80) ? 1 : 0; //If health is over 80%, change opponent icon to frame 1 (losing icon), otherwise, frame 0 (normal)
-		return health;
-	}
 
 	function openPauseMenu()
 	{
